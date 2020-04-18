@@ -12,8 +12,11 @@ Get fit, explore your beautiful surroundings, and compete for prizes. But keep v
 ## TODO
 
 - Sign in / register
-- Display map and your position
+- ~~Display map and your position~~
 - Display coins
+  - ~~Get users location~~
+  - generate random number within 1 km of user
+  - display as point on map
 - Display your speed
 - If within 100 m of coin, remove coin and total++.
 - Display your total coins collected
