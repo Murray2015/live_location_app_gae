@@ -1,39 +1,55 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, Dimensions } from "react-native";
-import MapView from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import * as Permission from "expo-permissions";
 import * as Location from "expo-location";
 
+const xKm = 2;
+const nCoins = 20;
+
 export default function App() {
   const [locPermission, setLocPermission] = useState(false);
-  const [randomPoints, setRandomPoints] = useState([]);
+  const [coinLocs, setCoinLocs] = useState();
 
   // Get user permission to display their location on map, and change state to render map
   useEffect(() => {
     (async () => {
+      // Icon.getImageSource("sun", 20, "yellow").then((sun) =>
+      //   setIconPngs({ sun })
+      // );
       const { status } = await Permission.askAsync(Permission.LOCATION);
       setLocPermission(true);
       let location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Highest,
       });
-      const { latitude, longitude } = location.coords;
-      console.log("lat lon ", latitude, longitude);
-      const add1kmToDeg = 1 / 111;
-      // getGeocodeAsync({latitude, longitude})
+      const userLatitude = location.coords.latitude;
+      const userLongitude = location.coords.longitude;
+      const addXkmToDeg = xKm / 111;
+      const bounds = {
+        minLat: userLatitude - addXkmToDeg,
+        minLon: userLongitude - addXkmToDeg,
+        maxLat: userLatitude + addXkmToDeg,
+        maxLon: userLongitude + addXkmToDeg,
+      };
+      // Create and display noPoints random point xKm from the userLoc
+      let tempCoinLocs = [];
+      function randCoin(bounds) {
+        function randPoint(min, max) {
+          return Math.random() * Math.abs(max - min) + min;
+        }
+        const randLon = randPoint(bounds.minLon, bounds.maxLon);
+        const randLat = randPoint(bounds.minLat, bounds.maxLat);
+        return {
+          latitude: randLat,
+          longitude: randLon,
+        };
+      }
+      for (let i = 0; i < nCoins; i++) {
+        tempCoinLocs.push(randCoin(bounds));
+      }
+      setCoinLocs(tempCoinLocs);
     })();
   }, []);
-
-  // Create and display noPoints random point xKm from the userLoc
-  function createAndDisplayPoints(userLoc, xKm, noPoints) {
-    // Create vars for bounds, randPoints array
-    // Get user location
-    // Get bounds xKm away from userLoc
-    // loop noPoints times
-    // create a random point with Math.random() within bounds
-    // push to randPoints array
-    // Set state
-    setRandomPoints(randPoints);
-  }
 
   return (
     <View style={styles.container}>
@@ -51,10 +67,19 @@ export default function App() {
           showsMyLocationButton={true}
           loadingEnabled={true}
           followUserLocation={true}
-          userLocationAnnotationTitle={"hihi"}
           showsScale={true}
           loadingEnabled={true}
-        />
+        >
+          {coinLocs &&
+            coinLocs.map((point) => (
+              <Marker
+                coordinate={point}
+                title={"Coin!"}
+                key={"" + point.latitude + point.longitude}
+                icon={require("./assets/images/coin1.png")}
+              />
+            ))}
+        </MapView>
       )}
     </View>
   );
