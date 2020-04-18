@@ -13,13 +13,13 @@ Get fit, explore your beautiful surroundings, and compete for prizes. But keep v
 
 - Sign in / register
 - ~~Display map and your position~~
-- Display coins
+- ~~Display coins~~
   - ~~Get users location~~
-  - generate random number within 1 km of user
-  - display as point on map
-- Display your speed
+  - ~~generate random number within 1 km of user~~
+  - ~~display as point on map~~
 - If within 100 m of coin, remove coin and total++.
 - Display your total coins collected
+- Display your speed
 - Display leaderboard
 - Display fog of war to obscure the map
 - remove fog of war within 300m of your position
