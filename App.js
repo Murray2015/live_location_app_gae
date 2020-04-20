@@ -3,12 +3,14 @@ import { StyleSheet, Text, View, Dimensions } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import * as Permission from "expo-permissions";
 import * as Location from "expo-location";
+import haversine from "haversine-distance";
 
 const xKm = 2;
 const nCoins = 20;
 
 export default function App() {
   const [locPermission, setLocPermission] = useState(false);
+  const [userLoc, setUserLoc] = useState();
   const [coinLocs, setCoinLocs] = useState();
 
   // Get user permission to display their location on map, and change state to render map
@@ -50,6 +52,32 @@ export default function App() {
       setCoinLocs(tempCoinLocs);
     })();
   }, []);
+
+  useEffect(() => {
+    Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.Balanced,
+        timeInterval: 2000,
+        distanceInterval: 0,
+      },
+      (locationObject) => {
+        setUserLoc({
+          latitude: locationObject.coords.latitude,
+          longitude: locationObject.coords.longitude,
+        });
+        console.log("location object is ", locationObject);
+      }
+    );
+  }, []);
+
+  // Check distance between user and coins
+  useEffect(() => {
+    userLoc &&
+      coinLocs &&
+      coinLocs.forEach((coinLoc) => {
+        console.log("dists:", haversine(coinLoc, userLoc));
+      });
+  }, [userLoc]);
 
   return (
     <View style={styles.container}>
