@@ -7,11 +7,13 @@ import haversine from "haversine-distance";
 
 const xKm = 2;
 const nCoins = 20;
+const scoreSensitivity = 500; // If dist between user and coin < scoreSensitivity then userScore++;
 
 export default function App() {
   const [locPermission, setLocPermission] = useState(false);
   const [userLoc, setUserLoc] = useState();
   const [coinLocs, setCoinLocs] = useState();
+  const [userScore, setUserScore] = useState(0);
 
   // Get user permission to display their location on map, and change state to render map
   useEffect(() => {
@@ -57,8 +59,8 @@ export default function App() {
     Location.watchPositionAsync(
       {
         accuracy: Location.Accuracy.Balanced,
-        timeInterval: 2000,
-        distanceInterval: 0,
+        timeInterval: 5000,
+        distanceInterval: 10,
       },
       (locationObject) => {
         setUserLoc({
@@ -70,12 +72,16 @@ export default function App() {
     );
   }, []);
 
-  // Check distance between user and coins
+  // Check distance between user and coins, and update scores
   useEffect(() => {
     userLoc &&
       coinLocs &&
       coinLocs.forEach((coinLoc) => {
-        console.log("dists:", haversine(coinLoc, userLoc));
+        const dist = haversine(coinLoc, userLoc);
+        if (dist < scoreSensitivity) {
+          setUserScore(userScore + 1);
+        }
+        console.log("dists:", dist, "score:", userScore);
       });
   }, [userLoc]);
 
@@ -109,6 +115,7 @@ export default function App() {
             ))}
         </MapView>
       )}
+      <Text style={styles.score}>Score: {userScore}</Text>
     </View>
   );
 }
@@ -123,5 +130,16 @@ const styles = StyleSheet.create({
   mapStyle: {
     width: Dimensions.get("window").width * 0.5,
     height: Dimensions.get("window").height * 0.5,
+  },
+  score: {
+    position: "relative",
+    top: -35,
+    backgroundColor: "white",
+    padding: 5,
+    borderRadius: 7,
+    borderColor: "black",
+    borderWidth: 2,
+    borderStyle: "solid",
+    textAlign: "center",
   },
 });
