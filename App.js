@@ -3,13 +3,17 @@ import { StyleSheet, Text, View, Dimensions } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import * as Permission from "expo-permissions";
 import * as Location from "expo-location";
+import haversine from "haversine-distance";
 
 const xKm = 2;
 const nCoins = 20;
+const scoreSensitivity = 500; // If dist between user and coin < scoreSensitivity then userScore++;
 
 export default function App() {
   const [locPermission, setLocPermission] = useState(false);
+  const [userLoc, setUserLoc] = useState();
   const [coinLocs, setCoinLocs] = useState();
+  const [userScore, setUserScore] = useState(0);
 
   // Get user permission to display their location on map, and change state to render map
   useEffect(() => {
@@ -51,6 +55,36 @@ export default function App() {
     })();
   }, []);
 
+  useEffect(() => {
+    Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.Balanced,
+        timeInterval: 5000,
+        distanceInterval: 10,
+      },
+      (locationObject) => {
+        setUserLoc({
+          latitude: locationObject.coords.latitude,
+          longitude: locationObject.coords.longitude,
+        });
+        console.log("location object is ", locationObject);
+      }
+    );
+  }, []);
+
+  // Check distance between user and coins, and update scores
+  useEffect(() => {
+    userLoc &&
+      coinLocs &&
+      coinLocs.forEach((coinLoc) => {
+        const dist = haversine(coinLoc, userLoc);
+        if (dist < scoreSensitivity) {
+          setUserScore(userScore + 1);
+        }
+        console.log("dists:", dist, "score:", userScore);
+      });
+  }, [userLoc]);
+
   return (
     <View style={styles.container}>
       <Text>Open up App.js to start working on your app!</Text>
@@ -81,6 +115,7 @@ export default function App() {
             ))}
         </MapView>
       )}
+      <Text style={styles.score}>Score: {userScore}</Text>
     </View>
   );
 }
@@ -95,5 +130,16 @@ const styles = StyleSheet.create({
   mapStyle: {
     width: Dimensions.get("window").width * 0.5,
     height: Dimensions.get("window").height * 0.5,
+  },
+  score: {
+    position: "relative",
+    top: -35,
+    backgroundColor: "white",
+    padding: 5,
+    borderRadius: 7,
+    borderColor: "black",
+    borderWidth: 2,
+    borderStyle: "solid",
+    textAlign: "center",
   },
 });
