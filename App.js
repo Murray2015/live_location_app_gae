@@ -5,15 +5,19 @@ import * as Permission from "expo-permissions";
 import * as Location from "expo-location";
 import haversine from "haversine-distance";
 
-const xKm = 2;
+const xKm = 0.5;
 const nCoins = 20;
 const scoreSensitivity = 500; // If dist between user and coin < scoreSensitivity then userScore++;
+const screenWidth = Dimensions.get("window").width;
+const screenHeight = Dimensions.get("window").height;
 
 export default function App() {
   const [locPermission, setLocPermission] = useState(false);
   const [userLoc, setUserLoc] = useState();
   const [coinLocs, setCoinLocs] = useState();
   const [userScore, setUserScore] = useState(0);
+  const [userSpeed, setUserSpeed] = useState(0);
+  const [userHeading, setUserHeading] = useState(0);
 
   // Get user permission to display their location on map, and change state to render map
   useEffect(() => {
@@ -67,6 +71,8 @@ export default function App() {
           latitude: locationObject.coords.latitude,
           longitude: locationObject.coords.longitude,
         });
+        setUserSpeed(Math.round(locationObject.coords.speed));
+        setUserHeading(Math.round(locationObject.coords.heading));
         console.log("location object is ", locationObject);
       }
     );
@@ -115,7 +121,11 @@ export default function App() {
             ))}
         </MapView>
       )}
-      <Text style={styles.score}>Score: {userScore}</Text>
+      <View style={styles.diagnostics}>
+        <Text style={styles.score}>Score: {userScore}</Text>
+        <Text style={styles.score}>Speed (m/s): {userSpeed}</Text>
+        <Text style={styles.score}>Heading (deg): {userHeading}</Text>
+      </View>
     </View>
   );
 }
@@ -128,8 +138,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   mapStyle: {
-    width: Dimensions.get("window").width * 0.5,
-    height: Dimensions.get("window").height * 0.5,
+    width: screenWidth * 0.8,
+    height: screenHeight * 0.8,
+  },
+  diagnostics: {
+    flexDirection: "row",
+    width: screenWidth * 0.8,
+    justifyContent: "space-between",
   },
   score: {
     position: "relative",
